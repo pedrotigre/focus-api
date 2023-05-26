@@ -90,5 +90,7 @@ func main() {
 
 	router := gin.Default()
 	router.POST("/frases", handleGeneratePhrases(clientOpenAi))
-	router.Run(":8080")
+
+	port := os.Getenv("PORT") // use 8080 in a non-production environment
+	router.Run(":" + port)
 }
