@@ -79,6 +79,15 @@ func handleGeneratePhrases(clientOpenAi *openai.Client) gin.HandlerFunc {
 	}
 }
 
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		c.Next()
+	}
+}
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -89,6 +98,10 @@ func main() {
 	clientOpenAi := openai.NewClient(apiKey)
 
 	router := gin.Default()
+
+	// Middleware
+	router.Use(corsMiddleware())
+
 	router.POST("/frases", handleGeneratePhrases(clientOpenAi))
 
 	port := os.Getenv("PORT") // use 8080 in a non-production environment
