@@ -83,7 +83,6 @@ func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		fmt.Println("error loading .env file")
-		return
 	}
 
 	apiKey := os.Getenv("OPENAI_KEY")
