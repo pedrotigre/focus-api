@@ -82,8 +82,12 @@ func handleGeneratePhrases(clientOpenAi *openai.Client) gin.HandlerFunc {
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if c.Request.Method == "OPTIONS" {
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			c.AbortWithStatus(http.StatusOK)
+		}
 		c.Next()
 	}
 }
