@@ -19,7 +19,7 @@ func HumanMessage(topic string) string {
 
 	USER'S INPUT
 	----------------------------
-	Here is the user's input (remember to respond with a json array, and NOTHING else):
-	Generate 5 motivational phrases to make me leave my smartphone based on topic of %s. 
+	Here is the user's input (remember to respond with a json array, use the language of the goal/topic keyword, and NOTHING else):
+	Generate 5 motivational phrases to make me leave my smartphone based on the goal/topic of %s. 
 	Each phrase should be returned as an json object following this structure: {"phrase": "the phrase generated"}.`, topic)
 }

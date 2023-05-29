@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	prompt "example/focus-api/prompts"
@@ -16,46 +17,66 @@ import (
 )
 
 type RequestBody struct {
-	Topic string `json:"topic" binding:"required"`
+	Goals []string `json:"goals" binding:"required"`
 }
 
 type ResponseBody struct {
 	Phrases []string `json:"phrases"`
 }
 
-func generatePhrases(clientOpenAi *openai.Client, topic string) ([]string, error) {
+func generatePhrases(clientOpenAi *openai.Client, goals []string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	resp, err := clientOpenAi.CreateChatCompletion(
-		ctx,
-		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: prompt.SystemMessage(),
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: prompt.HumanMessage(topic),
-				},
-			},
-		},
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(resp.Choices) == 0 {
-		return nil, errors.New("no phrases generated")
-	}
-
+	var wg sync.WaitGroup
+	ch := make(chan string, 100)
 	var phrases []string
-	for _, choice := range resp.Choices {
-		phrases = append(phrases, choice.Message.Content)
+
+	for _, goal := range goals {
+		wg.Add(1)
+		go func(goal string) {
+			defer wg.Done()
+
+			resp, err := clientOpenAi.CreateChatCompletion(
+				ctx,
+				openai.ChatCompletionRequest{
+					Model: openai.GPT3Dot5Turbo,
+
+					Messages: []openai.ChatCompletionMessage{
+						{
+							Role:    openai.ChatMessageRoleSystem,
+							Content: prompt.SystemMessage(),
+						},
+						{
+							Role:    openai.ChatMessageRoleUser,
+							Content: prompt.HumanMessage(goal),
+						},
+					},
+				},
+			)
+
+			if err != nil {
+				log.Printf("failed to generate phrases for goal %s: %v", goal, err)
+				return
+			}
+
+			for _, choice := range resp.Choices {
+				ch <- choice.Message.Content
+			}
+		}(goal)
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for v := range ch {
+		phrases = append(phrases, v)
+	}
+
+	if len(phrases) == 0 {
+		return nil, errors.New("no phrases were generated")
 	}
 
 	return phrases, nil
@@ -69,7 +90,7 @@ func handleGeneratePhrases(clientOpenAi *openai.Client) gin.HandlerFunc {
 			return
 		}
 
-		phrases, err := generatePhrases(clientOpenAi, reqBody.Topic)
+		phrases, err := generatePhrases(clientOpenAi, reqBody.Goals)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -95,7 +116,7 @@ func corsMiddleware() gin.HandlerFunc {
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
-		fmt.Println("error loading .env file")
+		log.Println("error loading .env file")
 	}
 
 	apiKey := os.Getenv("OPENAI_KEY")
