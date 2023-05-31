@@ -89,8 +89,9 @@ func handleGeneratePhrases(clientOpenAi *openai.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
-		phrases, err := generatePhrases(clientOpenAi, reqBody.Goals)
+		// This will triple the goals
+		// goals := append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)
+		phrases, err := generatePhrases(clientOpenAi, reqBody.Goals) //  Use the goals variable to triple the requests per goal
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
