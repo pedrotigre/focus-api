@@ -99,7 +99,8 @@ func handleGeneratePhrases(q *q.Queue) gin.HandlerFunc {
 			return
 		}
 
-		goals := append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)...)...)
+		// goals := append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)...)...)
+		goals := reqBody.Goals
 
 		apiKeys := make([]string, 30)
 
