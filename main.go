@@ -26,7 +26,7 @@ type ResponseBody struct {
 }
 
 func generatePhrases(apiKeys []string, goals []string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 270*time.Second)
 	defer cancel()
 
 	var wg sync.WaitGroup
@@ -66,6 +66,7 @@ func generatePhrases(apiKeys []string, goals []string) ([]string, error) {
 				ch <- choice.Message.Content
 			}
 		}(goal)
+		time.Sleep(5 * time.Second)
 	}
 
 	go func() {
@@ -98,7 +99,7 @@ func handleGeneratePhrases(q *q.Queue) gin.HandlerFunc {
 			return
 		}
 
-		goals := append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)
+		goals := append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)...)...)
 
 		apiKeys := make([]string, 30)
 
