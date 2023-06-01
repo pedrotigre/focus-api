@@ -26,7 +26,7 @@ type ResponseBody struct {
 }
 
 func generatePhrases(clientOpenAi *openai.Client, goals []string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	var wg sync.WaitGroup
