@@ -1,0 +1,19 @@
+vendor/
+.env
+
+# Ignore Go build artifacts
+*.o
+*.a
+*.exe
+
+# Ignore editor and IDE files
+.vscode/
+.idea/
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.swp
+*.tmp
+*.bak
