@@ -25,7 +25,7 @@ type ResponseBody struct {
 	Phrases []string `json:"phrases"`
 }
 
-func generatePhrases(clientOpenAi *openai.Client, goals []string) ([]string, error) {
+func generatePhrases(apiKeys []string, goals []string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
@@ -33,8 +33,9 @@ func generatePhrases(clientOpenAi *openai.Client, goals []string) ([]string, err
 	ch := make(chan string, 100)
 	var phrases []string
 
-	for _, goal := range goals {
+	for index, goal := range goals {
 		wg.Add(1)
+		clientOpenAi := openai.NewClient(apiKeys[index])
 		go func(goal string) {
 			defer wg.Done()
 
@@ -85,19 +86,29 @@ func generatePhrases(clientOpenAi *openai.Client, goals []string) ([]string, err
 
 func handleGeneratePhrases(q *q.Queue) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		apiKey, _ := (*q).Dequeue()
-		(*q).Enqueue(apiKey)
-
-		clientOpenAi := openai.NewClient(apiKey)
 
 		var reqBody RequestBody
 		if err := c.ShouldBindJSON(&reqBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		// This will triple the goals
-		// goals := append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)
-		phrases, err := generatePhrases(clientOpenAi, reqBody.Goals) //  Use the goals variable to triple the requests per goal
+
+		if len(reqBody.Goals) > 6 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "limit of 6 goals per request exceeded"})
+			return
+		}
+
+		goals := append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)
+
+		apiKeys := make([]string, 30)
+
+		for index := range goals {
+			apiKey, _ := (*q).Dequeue()
+			(*q).Enqueue(apiKey)
+			apiKeys[index] = apiKey
+		}
+
+		phrases, err := generatePhrases(apiKeys, goals)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -130,6 +141,23 @@ func main() {
 		os.Getenv("OPENAI_KEY1"),
 		os.Getenv("OPENAI_KEY2"),
 		os.Getenv("OPENAI_KEY3"),
+		os.Getenv("OPENAI_KEY4"),
+		os.Getenv("OPENAI_KEY5"),
+		os.Getenv("OPENAI_KEY6"),
+		os.Getenv("OPENAI_KEY7"),
+		os.Getenv("OPENAI_KEY8"),
+		os.Getenv("OPENAI_KEY9"),
+		os.Getenv("OPENAI_KEY10"),
+		os.Getenv("OPENAI_KEY11"),
+		os.Getenv("OPENAI_KEY12"),
+		os.Getenv("OPENAI_KEY13"),
+		os.Getenv("OPENAI_KEY14"),
+		os.Getenv("OPENAI_KEY15"),
+		os.Getenv("OPENAI_KEY16"),
+		os.Getenv("OPENAI_KEY17"),
+		os.Getenv("OPENAI_KEY18"),
+		os.Getenv("OPENAI_KEY19"),
+		os.Getenv("OPENAI_KEY20"),
 	}
 
 	router := gin.Default()
