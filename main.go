@@ -10,6 +10,7 @@ import (
 	"time"
 
 	prompt "example/focus-api/prompts"
+	q "example/focus-api/queue"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -82,8 +83,13 @@ func generatePhrases(clientOpenAi *openai.Client, goals []string) ([]string, err
 	return phrases, nil
 }
 
-func handleGeneratePhrases(clientOpenAi *openai.Client) gin.HandlerFunc {
+func handleGeneratePhrases(q *q.Queue) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		apiKey, _ := (*q).Dequeue()
+		(*q).Enqueue(apiKey)
+
+		clientOpenAi := openai.NewClient(apiKey)
+
 		var reqBody RequestBody
 		if err := c.ShouldBindJSON(&reqBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -120,15 +126,18 @@ func main() {
 		log.Println("error loading .env file")
 	}
 
-	apiKey := os.Getenv("OPENAI_KEY")
-	clientOpenAi := openai.NewClient(apiKey)
+	keyQueue := q.Queue{
+		os.Getenv("OPENAI_KEY1"),
+		os.Getenv("OPENAI_KEY2"),
+		os.Getenv("OPENAI_KEY3"),
+	}
 
 	router := gin.Default()
 
 	// Middleware
 	router.Use(corsMiddleware())
 
-	router.POST("/frases", handleGeneratePhrases(clientOpenAi))
+	router.POST("/frases", handleGeneratePhrases(&keyQueue))
 
 	port := os.Getenv("PORT") // use 8080 in a non-production environment
 	router.Run(":" + port)
