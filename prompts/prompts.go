@@ -15,11 +15,10 @@ func HumanMessage(topic string) string {
 	RESPONSE FORMAT INSTRUCTIONS
 	----------------------------
 	When responding to me, please output a response in this json format:
-	[{"phrase": "the phrase generated"}, {"phrase": "the second phrase generated"}, ...]
+	{"phrase": "the first phrase generated"}, {"phrase": "the second phrase generated"}, {"phrase": "the third phrase generated"},...
 
 	USER'S INPUT
 	----------------------------
-	Here is the user's input (remember to respond with a json array, use the language of the goal/topic """keyword""" to write the phrases requested, and NOTHING else):
-	Generate 20 short and concise motivational phrases with emotes to make me leave my smartphone based on the goal/topic of """%s""". 
-	Each phrase should be returned as an json object following this structure: {"phrase": "the phrase generated"}.`, topic)
+	Here is the user's input (remember to answer with comma separated json format, use the language of the goal/topic """keyword""" to write the phrases requested, and NOTHING else):
+	Generate 20 short and concise motivational phrases with emotes to make me leave my smartphone based on the goal/topic of """%s""".`, topic)
 }

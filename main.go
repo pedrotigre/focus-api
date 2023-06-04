@@ -66,7 +66,7 @@ func generatePhrases(apiKeys []string, goals []string) ([]string, error) {
 				ch <- choice.Message.Content
 			}
 		}(goal)
-		time.Sleep(5 * time.Second)
+		time.Sleep(15 * time.Second)
 	}
 
 	go func() {
