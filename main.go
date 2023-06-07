@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -66,7 +67,7 @@ func generatePhrases(apiKeys []string, goals []string) ([]string, error) {
 				ch <- choice.Message.Content
 			}
 		}(goal)
-		time.Sleep(15 * time.Second)
+
 	}
 
 	go func() {
@@ -75,7 +76,12 @@ func generatePhrases(apiKeys []string, goals []string) ([]string, error) {
 	}()
 
 	for v := range ch {
-		phrases = append(phrases, v)
+		phrasesArray := strings.Split(v, ";")
+		for i := range phrasesArray {
+			phrasesArray[i] = strings.ReplaceAll(phrasesArray[i], `"`, "")
+			phrasesArray[i] = strings.TrimSpace(phrasesArray[i])
+		}
+		phrases = append(phrases, phrasesArray...)
 	}
 
 	if len(phrases) == 0 {
@@ -99,8 +105,7 @@ func handleGeneratePhrases(q *q.Queue) gin.HandlerFunc {
 			return
 		}
 
-		// goals := append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, append(reqBody.Goals, reqBody.Goals...)...)...)...)
-		goals := reqBody.Goals
+		goals := append(reqBody.Goals, reqBody.Goals...)
 
 		apiKeys := make([]string, 30)
 
