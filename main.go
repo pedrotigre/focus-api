@@ -78,10 +78,13 @@ func generatePhrases(apiKeys []string, goals []string) ([]string, error) {
 	for v := range ch {
 		phrasesArray := strings.Split(v, ";")
 		for i := range phrasesArray {
+			if len(phrasesArray[i]) > 300 || len(phrasesArray[i]) < 5 {
+				continue
+			}
 			phrasesArray[i] = strings.ReplaceAll(phrasesArray[i], `"`, "")
 			phrasesArray[i] = strings.TrimSpace(phrasesArray[i])
+			phrases = append(phrases, phrasesArray[i])
 		}
-		phrases = append(phrases, phrasesArray...)
 	}
 
 	if len(phrases) == 0 {
